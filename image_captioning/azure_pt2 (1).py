@@ -87,29 +87,8 @@ class SaveModelCallback(TrainerCallback):
 
     def on_epoch_end(self, args, state, control, **kwargs):
         if (state.epoch + 1) % self.save_interval == 0:
-            trainer.save_model(f"Image_Captioning_VIT_Roberta_iter_epoch{state.epoch + 1}")
+            state.save_model(f"Image_Captioning_VIT_Roberta_iter_epoch{state.epoch + 1}")
 
-
-def predict_step(image_paths):
-  images = []
-  for image_path in image_paths:
-    i_image = Image.open(image_path)
-    if i_image.mode != "RGB":
-      i_image = i_image.convert(mode="RGB")
-
-    images.append(i_image)
-    
-  pixel_values = feature_extractor(images=images, return_tensors="pt").pixel_values
-
-  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-  pixel_values = pixel_values.to(device)
-
-  output_ids = model.generate(pixel_values, **gen_kwargs)
-
-  preds = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
-  preds = [pred.strip() for pred in preds]
-  return preds
 
 def main(args):
     df = pd.read_csv("RefCOCOg_cropped.csv")
@@ -174,7 +153,6 @@ def main(args):
         overwrite_output_dir=True,
         save_total_limit=1,
     )
-
 
     # instantiate trainer
     trainer = Seq2SeqTrainer(
