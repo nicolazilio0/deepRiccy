@@ -18,7 +18,7 @@ from transformers import Seq2SeqTrainer
 from transformers import Seq2SeqTrainingArguments
 from transformers import ViTFeatureExtractor
 from transformers import TrainerCallback
-from transformers import RobertaForImageCaptioning
+from transformers import VisionEncoderDecoderModel
 
 import requests
 
@@ -26,7 +26,7 @@ import requests
 TRAIN_BATCH_SIZE = 58  # input batch size for training (default: 64)
 VALID_BATCH_SIZE = 5   # input batch size for testing (default: 1000)
 
-TRAIN_EPOCHS = 100       # number of epochs to train (default: 10)
+TRAIN_EPOCHS = 40       # number of epochs to train (default: 10)
 VAL_EPOCHS = 1 
 
 LEARNING_RATE = 1e-4   # learning rate (default: 0.01)
@@ -134,7 +134,7 @@ def main(args):
                             tokenizer=tokenizer,feature_extractor= feature_extractor)
 
     # set encoder decoder tying to True
-    model = RobertaForImageCaptioning.from_pretrained(args.path)# could be VisionEncoderDecoderModel
+    model = VisionEncoderDecoderModel.from_pretrained(args.path)# could be VisionEncoderDecoderModel
 
     # set special tokens used for creating the decoder_input_ids from the labels
     model.config.decoder_start_token_id = tokenizer.cls_token_id
@@ -195,6 +195,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", type=str, default="Image_Captioning_VIT_Roberta_iter_epoch1")
+    parser.add_argument("--path", type=str, default="Image_Cationing_VIT_Roberta_iter2")
     args = parser.parse_args()
     main(args)
