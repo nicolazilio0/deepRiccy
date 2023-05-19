@@ -18,7 +18,8 @@ from transformers import Seq2SeqTrainer
 from transformers import Seq2SeqTrainingArguments
 from transformers import ViTFeatureExtractor
 from transformers import TrainerCallback
-from transformers import VisionEncoderDecoderModel, AutoTokenizer
+from transformers import VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
+
 
 import requests
 
@@ -66,7 +67,7 @@ class IAMDataset(Dataset):
 
 def compute_metrics(pred):
     rouge = datasets.load_metric("rouge")
-    tokenizer = AutoTokenizer.from_pretrained("nlpconnct/vit-gpt2-image-captioning")
+    tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
     labels_ids = pred.label_ids
     pred_ids = pred.predictions
 
@@ -83,13 +84,13 @@ def compute_metrics(pred):
         "rouge2_fmeasure": round(rouge_output.fmeasure, 4),
     }
 
-class SaveModelCallback(TrainerCallback):
-    def __init__(self, save_interval, trainer):
-        self.save_interval = save_interval
-        self.trainer = trainer
-    def on_epoch_end(self, args, state, control, **kwargs):
-        if (state.epoch + 1) % self.save_interval == 0:
-            self.trainer.save_model(f"Image_Captioning_VIT_Roberta_iter_epoch{state.epoch + 1}")
+# class SaveModelCallback(TrainerCallback):
+#     def __init__(self, save_interval, trainer):
+#         self.save_interval = save_interval
+#         self.trainer = trainer
+#     def on_epoch_end(self, args, state, control, **kwargs):
+#         if (state.epoch + 1) % self.save_interval == 0:
+#             self.trainer.save_model(f"Image_Captioning_VIT_Roberta_iter_epoch{state.epoch + 1}")
 
 
 def main(args):
@@ -150,10 +151,9 @@ def main(args):
         logging_steps=1024,  
         save_steps=2048, 
         warmup_steps=1024,  
-        #max_steps=1500, # delete for full training
         num_train_epochs = TRAIN_EPOCHS, #TRAIN_EPOCHS
         overwrite_output_dir=True,
-        save_total_limit=1,
+            save_strategy="epoch",
     )
 
     # instantiate trainer
@@ -165,7 +165,7 @@ def main(args):
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         data_collator=default_data_collator,
-        callbacks=[SaveModelCallback(1, trainer)]
+        #save strategy
     )
 
     trainer.train()
