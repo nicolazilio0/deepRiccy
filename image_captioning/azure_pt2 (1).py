@@ -18,7 +18,7 @@ from transformers import Seq2SeqTrainer
 from transformers import Seq2SeqTrainingArguments
 from transformers import ViTFeatureExtractor
 from transformers import TrainerCallback
-from transformers import VisionEncoderDecoderModel
+from transformers import VisionEncoderDecoderModel, AutoTokenizer
 
 import requests
 
@@ -65,6 +65,8 @@ class IAMDataset(Dataset):
         return encoding
 
 def compute_metrics(pred):
+    rouge = datasets.load_metric("rouge")
+    tokenizer = AutoTokenizer.from_pretrained("nlpconnct/vit-gpt2-image-captioning")
     labels_ids = pred.label_ids
     pred_ids = pred.predictions
 
@@ -82,12 +84,12 @@ def compute_metrics(pred):
     }
 
 class SaveModelCallback(TrainerCallback):
-    def __init__(self, save_interval):
+    def __init__(self, save_interval, trainer):
         self.save_interval = save_interval
-
+        self.trainer = trainer
     def on_epoch_end(self, args, state, control, **kwargs):
         if (state.epoch + 1) % self.save_interval == 0:
-            state.save_model(f"Image_Captioning_VIT_Roberta_iter_epoch{state.epoch + 1}")
+            self.trainer.save_model(f"Image_Captioning_VIT_Roberta_iter_epoch{state.epoch + 1}")
 
 
 def main(args):
@@ -163,7 +165,7 @@ def main(args):
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         data_collator=default_data_collator,
-        callbacks=[SaveModelCallback(save_interval=1)]
+        callbacks=[SaveModelCallback(1, trainer)]
     )
 
     trainer.train()
