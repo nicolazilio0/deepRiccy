@@ -329,7 +329,7 @@ clip, preprocess = clip.load('ViT-B/32')
 
 with open('image_captioning_testset.json', 'w') as f:
     entries = []
-    for i in tqdm(range(5)):
+    for i in tqdm(range(len(dataframe))):
         input = dataframe.iloc[i]
         image_path = split_string(input["file_name"])
         sentence = input["sentences"]["raw"]
@@ -340,6 +340,8 @@ with open('image_captioning_testset.json', 'w') as f:
 
         frase = []
         for j in range(len(yolo_output.xyxy[0])):
+            if root != "empty" and yolo.names[int(yolo_output.pred[0][i][5])] != root:
+               continue
             cropped = crop_yolo(yolo_output, original_img, j)
             features = text_feature_extractor(cropped, return_tensors="pt").pixel_values.to(device)
             generated = text_model.generate(features)[0].to(device)
